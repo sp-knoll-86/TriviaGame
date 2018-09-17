@@ -1,12 +1,14 @@
 $(document).ready(function () {
     // variables for wins / losses / skipped
-    var correctAnswer = 0;
+    var rightAnswer = 0;
     var wrongAnswer = 0;
     var noAnswer = 0;
     // variable to track the question
     var questionCounter = 0;
     // variable to track user selection
     var userAnswer = [];
+    // timeout for in between questions
+    var betweenTimeout = 3000;
     // array of objects for questions and answers
     var triviaQuestions = [
         {
@@ -26,6 +28,38 @@ $(document).ready(function () {
         },
     ];
 
+    // variable to set time allowed
+    var answerTime = 10;
+    var timeChange;
+
+    // different timer functions to be called when starting new question
+    function runTimer() {
+        timeChange = setInterval(decrement, 1000);
+    }
+
+    function decrement() {
+        answerTime--;
+        $("#time").html("Time Left: " + answerTime);
+        if (answerTime === 0) {
+            stopTime();
+            userAnswer.length = 0;
+            var userChoice = $("#answers input:radio[name=optionsRadios]:checked").val();
+            userAnswer.push(userChoice);
+            console.log(userChoice);
+            nextQuestion();
+        }
+    }
+
+    function resetTime() {
+        answerTime = 10;
+        $("#time").html("Time Left: " + answerTime);
+    }
+
+    function stopTime() {
+        clearInterval(timeChange);
+    }
+
+    // function to clear the fields to be called when moving on to the next question or end of the game
     function clearDiv() {
         var clearQuestion = $("#question");
         clearQuestion.empty();
@@ -61,9 +95,9 @@ $(document).ready(function () {
     }
 
     // function to submit user answer
-    function submit(event1) {
-        $("#submit").on("click", function () {
-            // event1.preventDefault();
+    function submit() {
+        $("#submit").on("click", function (event1) {
+            event1.preventDefault();
             userAnswer.length = 0;
             var userChoice = $("#answers input:radio[name=optionsRadios]:checked").val();
             userAnswer.push(userChoice);
@@ -72,19 +106,56 @@ $(document).ready(function () {
         })
     }
 
+    // function to check is answer was right or wrong
+    function selectedAnswer() {
+        clearDiv();
+        var correctAnswer = triviaQuestions[questionCounter].correct;
+        if (userAnswer[0] == correctAnswer) {
+            $("#question").append("<p>" + "That is correct. Well done!" + "</p>");
+            rightAnswer++;
+        }
+        else if (userAnswer[0] == undefined) {
+            $("#question").append("<p>" + "Out of time. The correct answer was: " + triviaQuestions[questionCounter].answers[correctAnswer] + "</p>");
+            noAnswer++;
+        }
+        else {
+            $("#question").append("<p>" + "That is incorrect. The correct answer was: " + triviaQuestions[questionCounter].answers[correctAnswer] + "</p>");
+            wrongAnswer++;
+        }
+    }
+
     // function to go to the next question
     function nextQuestion() {
+        selectedAnswer();
         questionCounter++;
-        // if (questionCounter === question.length) {
-            displayQuestion();
-        // }
+        if (questionCounter === question.length) {
+            setTimeout(endGame, betweenTimeout);
+        }
+        else {
+            setTimeout(displayQuestion, betweenTimeout);
+        }
+    }
+
+    // reset the game
+    function reset() {
+        questionCounter = 0;
+        rightAnswer = 0;
+        wrongAnswer = 0;
+        noAnswer = 0;
+        userAnswer = [];
     }
 
     // function to end the game
     function endGame() {
-
+        clearDiv();
+        $("#question").append("<p>" + "Correct Answers: " + rightAnswer + "</p><br><p>" + "Incorrect Answers: " + wrongAnswer + "</p><br></p>" + "No Answers: " + noAnswer + "</P>");
+        $("#submit").append("<button class='btn btn-secondary btn-lg' id='submitButton'>" + 'restart' + "</button>");
+        $("#submitButton").on("click", function(event2) {
+            event2.preventDefault();
+            reset();
+            clearDiv();
+            buttonStart();
+        })
     }
-
-
     buttonStart();
 })
