@@ -26,6 +26,11 @@ $(document).ready(function () {
             answers: ["Sviatoslav Mykhailiuk", "Kirk Hinrich", "Terry Brown", "Brandon Rush"],
             correct: 0,
         },
+        {
+            question: "How many consecutive years have the Jayhawks currently won the Big XII?",
+            answers: ["25", "8", "15", "14"],
+            correct: 3,
+        }
     ];
 
     // variable to set time allowed
@@ -55,6 +60,10 @@ $(document).ready(function () {
         $("#time").html("Time Left: " + answerTime);
     }
 
+    function intervalDisplay() {
+        $("#time").html("Review");
+    }
+
     function stopTime() {
         clearInterval(timeChange);
     }
@@ -69,6 +78,7 @@ $(document).ready(function () {
         clearSubmit.empty();
         var clearStart = $("#start");
         clearStart.empty();
+        stopTime();
     }
 
     // display start button and begin game
@@ -79,18 +89,22 @@ $(document).ready(function () {
             var startGame = $("#start");
             startGame.empty();
             displayQuestion();
+            resetTime();
         })
     }
 
     // function to display questions and selections
     function displayQuestion() {
         clearDiv();
+        resetTime();
         $("#question").text(triviaQuestions[questionCounter].question);
         var possibleAnswers = $("#answers");
+        possibleAnswers.empty();
         for (i = 0; i < triviaQuestions[questionCounter].answers.length; i++) {
             possibleAnswers.append("<label><input type='radio' name='optionsRadios' id='radioAnswer' value='" + [i] + "'><div>" + triviaQuestions[questionCounter].answers[i] + "</div></input></label><br>");
         };
         $("#submit").append("<button class='btn btn-secondary btn-lg' id='submitButton'>" + 'submit' + "</button>")
+        runTimer();
         submit();
     }
 
@@ -113,14 +127,17 @@ $(document).ready(function () {
         if (userAnswer[0] == correctAnswer) {
             $("#question").append("<p>" + "That is correct. Well done!" + "</p>");
             rightAnswer++;
+            intervalDisplay();
         }
         else if (userAnswer[0] == undefined) {
             $("#question").append("<p>" + "Out of time. The correct answer was: " + triviaQuestions[questionCounter].answers[correctAnswer] + "</p>");
             noAnswer++;
+            intervalDisplay();
         }
         else {
             $("#question").append("<p>" + "That is incorrect. The correct answer was: " + triviaQuestions[questionCounter].answers[correctAnswer] + "</p>");
             wrongAnswer++;
+            intervalDisplay();
         }
     }
 
@@ -150,7 +167,7 @@ $(document).ready(function () {
         clearDiv();
         $("#question").append("<p>" + "Correct Answers: " + rightAnswer + "</p><br><p>" + "Incorrect Answers: " + wrongAnswer + "</p><br></p>" + "No Answers: " + noAnswer + "</P>");
         $("#submit").append("<button class='btn btn-secondary btn-lg' id='submitButton'>" + 'restart' + "</button>");
-        $("#submitButton").on("click", function(event2) {
+        $("#submitButton").on("click", function (event2) {
             event2.preventDefault();
             reset();
             clearDiv();
